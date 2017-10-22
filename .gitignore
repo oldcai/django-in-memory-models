@@ -1,0 +1,16 @@
+# python tmp files
+*.py[cdo]
+
+# eggs
+*.egg-info
+eggs/
+build/
+EGG-INFO
+
+# pycharm configs
+/.idea/*
+
+# vim files
+.*.un~
+.*.swp
+*.ropeproject
