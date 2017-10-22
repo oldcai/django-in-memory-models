@@ -42,7 +42,9 @@ class InMemoryOneToOneKey(ForeignKey):
 
 def property_field(cls, name):
     def getter(self):
-        return cls(name, self.user_id)
+        key_field = getattr(self, 'key_field', 'user_id')
+        key = getattr(self, key_field, '-')
+        return cls(name, key)
 
     return property(getter, lambda s, x: x)
 
