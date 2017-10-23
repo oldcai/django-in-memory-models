@@ -86,8 +86,8 @@ setup(
     long_description=read_md('README.md'),
     author='oldcai',
     author_email='oldcai.com@gmail.com',
-    packages=get_packages('in_memory_models'),
-    package_data=get_package_data('in_memory_models'),
+    packages=get_packages('in_memory'),
+    package_data=get_package_data('in_memory'),
     install_requires=REQUIREMENTS,
     zip_safe=False,
     classifiers=[
