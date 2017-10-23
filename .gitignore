@@ -1,5 +1,6 @@
 # python tmp files
 *.py[cdo]
+.pypirc
 
 # eggs
 *.egg-info

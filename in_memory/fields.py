@@ -1,4 +1,4 @@
-from django.db.models import ForeignKey
+from django.db.models import ForeignKey, NOT_PROVIDED
 from django.db.models.fields.related import lazy_related_operation
 from django.db.models.fields.related_descriptors import ReverseOneToOneDescriptor
 
@@ -40,13 +40,31 @@ class InMemoryOneToOneKey(ForeignKey):
         setattr(cls, self.name, self.forward_related_accessor_class(self))
 
 
-def property_field(cls, name):
-    def getter(self):
+def property_field(cls, name, related_class=None, default=None):
+    def get_key(self):
         key_field = getattr(self, 'key_field', 'user_id')
         key = getattr(self, key_field, '-')
-        return cls(name, key)
+        return key
 
-    return property(getter, lambda s, x: x)
+    def get_instance(self):
+        key = get_key(self)
+        kwargs = {}
+        if related_class is not None:
+            kwargs['related_class'] = related_class
+        if default is not None:
+            kwargs['default'] = default
+        return cls(name, key, **kwargs)
+
+    def getter(self):
+        return get_instance(self)
+
+    def setter(self, value):
+        if isinstance(value, cls):
+            return value
+        instance = get_instance(self)
+        return instance.set(value)
+
+    return property(getter, setter)
 
 
 class InMemoryFieldMixin(object):
@@ -54,5 +72,9 @@ class InMemoryFieldMixin(object):
         self.set_attributes_from_name(name)
         self.model = cls
         self.opts = cls._meta
+        if NOT_PROVIDED == self.default:
+            default = None
+        else:
+            default = self.default
 
-        setattr(cls, self.name, property_field(self._class, name))
+        setattr(cls, self.name, property_field(self._class, name, related_class=cls, default=default))

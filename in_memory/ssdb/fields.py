@@ -1,9 +1,9 @@
 from django.db.models import Field
 
 from in_memory.fields import InMemoryFieldMixin
-from in_memory.ssdb.models import Sorter
+from in_memory.ssdb.models import SSDBSorter
 
 
-class IntegerField(InMemoryFieldMixin, Field):
-    _class = Sorter
+class SSDBSortedIntegerField(InMemoryFieldMixin, Field):
+    _class = SSDBSorter
 

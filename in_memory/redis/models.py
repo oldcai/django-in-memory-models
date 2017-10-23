@@ -1,27 +1,11 @@
 from django_redis import get_redis_connection
 
+from in_memory.models import Sorter
 
 redis = get_redis_connection()
 
 
-class Sorter(object):
-    def __init__(self, name, key):
-        self.name = name
-        self.key = key
-        super(Sorter, self).__init__()
-
-    def __iadd__(self, other):
-        if isinstance(other, (int, float)):
-            self.increase(int(other))
-        return self
-
-    def __isub__(self, other):
-        if isinstance(other, (int, float)):
-            self.increase(-int(other))
-        return self
-
-    def __bool__(self):
-        return bool(self.value)
+class RedisSorter(Sorter):
 
     def increase(self, value):
         return redis.zincrby(self.name, self.key, value)
@@ -29,13 +13,15 @@ class Sorter(object):
     def reset(self):
         redis.zrem(self.name, self.key)
 
-    @property
-    def rank(self):
+    def get_rank(self):
         return redis.zrevrank(self.name, self.key)
 
-    @property
-    def value(self):
+    def get_value(self):
         return redis.zscore(self.name, self.key)
 
-    def top(self, count):
-        return redis.zrevrange(self.name, 0, max(count - 1, 0)) or []
+    def top_ids(self, count):
+        return redis.zrevrange(self.name, 0, max(count, 0)) or []
+
+    def set(self, value):
+        current_value = self.value
+        return redis.zincrby(self.name, self.key, value-current_value)

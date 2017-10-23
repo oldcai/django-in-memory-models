@@ -1,40 +1,27 @@
+from in_memory.models import Sorter
 from in_memory.ssdb.utils import ssdb_client
 
 
-class Sorter(object):
-    def __init__(self, name, key):
-        self.name = name
-        self.key = key
-        super(Sorter, self).__init__()
-
-    def __iadd__(self, other):
-        if isinstance(other, (int, float)):
-            self.increase(int(other))
-        return self
-
-    def __isub__(self, other):
-        if isinstance(other, (int, float)):
-            self.increase(-int(other))
-        return self
-
-    def __bool__(self):
-        return bool(self.value)
+class SSDBSorter(Sorter):
 
     def increase(self, value):
         return ssdb_client.zincr(self.name, self.key, value)
 
+    def set(self, value):
+        return ssdb_client.zset(self.name, self.key, value)
+
     def reset(self):
         ssdb_client.zdel(self.name, self.key)
 
-    @property
-    def rank(self):
+    def get_rank(self):
         return ssdb_client.zrank(self.name, self.key)
 
-    @property
-    def value(self):
+    def get_value(self):
         return ssdb_client.zget(self.name, self.key)
 
-    def top(self, count):
-        return ssdb_client.zrrange(self.name, 0, max(count-1, 0)) or []
+    def top_ids(self, count):
+        result = ssdb_client.zrrange(self.name, 0, max(count, 0)) or []
+        result = [result[i] for i in range(0, len(result), 2)]
+        return result
 
 

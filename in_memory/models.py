@@ -117,5 +117,65 @@ class InMemoryModel(Model):
                     setattr(self, key, value)
         super(Model, self).__init__()
         post_init.send(sender=cls, instance=self)
-        # self._meta.fields = ()
-        # self._meta.managed = False
+
+
+class Sorter(object):
+    def __init__(self, name, key, related_class, default=None):
+        self.name = name
+        self.key = key
+        self.default = default
+        self.sorted_class = related_class
+        super(Sorter, self).__init__()
+
+    def __iadd__(self, other):
+        if isinstance(other, (int, float)):
+            self.increase(int(other))
+        return self
+
+    def __isub__(self, other):
+        if isinstance(other, (int, float)):
+            self.increase(-int(other))
+        return self
+
+    def __bool__(self):
+        return bool(self.value)
+
+    def __int__(self):
+        return int(self.value)
+
+    def __float__(self):
+        return float(self.value)
+
+    def top(self, count):
+        top_ids = self.top_ids(count)
+        sorted_class_key = getattr(self.sorted_class, 'key_field', 'user_id')
+        return [self.sorted_class(**{sorted_class_key: top_id}) for top_id in top_ids]
+
+    @property
+    def rank(self):
+        return self.get_rank()
+
+    @property
+    def value(self):
+        result = self.get_value()
+        if result is None:
+            result = self.default
+        return result
+
+    def increase(self, value):
+        raise NotImplementedError
+
+    def set(self, value):
+        raise NotImplementedError
+
+    def reset(self):
+        raise NotImplementedError
+
+    def get_rank(self):
+        raise NotImplementedError
+
+    def get_value(self):
+        raise NotImplementedError
+
+    def top_ids(self, count):
+        raise NotImplementedError
