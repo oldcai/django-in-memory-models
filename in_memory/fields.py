@@ -72,9 +72,20 @@ class InMemoryFieldMixin(object):
         self.set_attributes_from_name(name)
         self.model = cls
         self.opts = cls._meta
+
+        class_key = getattr(cls, 'class_key', None)
+        field_keys = []
+        if class_key is None:
+            field_keys.append(cls._meta.db_table)
+        elif class_key:
+            field_keys.append(class_key)
+        field_keys.append(self.name)
+
+        field_key = '_'.join(field_keys)
+
         if NOT_PROVIDED == self.default:
             default = None
         else:
             default = self.default
 
-        setattr(cls, self.name, property_field(self._class, name, related_class=cls, default=default))
+        setattr(cls, self.name, property_field(self._class, field_key, related_class=cls, default=default))
